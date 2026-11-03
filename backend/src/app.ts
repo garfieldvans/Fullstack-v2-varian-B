@@ -1,6 +1,8 @@
 import cors from '@fastify/cors';
 import Fastify from 'fastify';
 import authRoutes from './modules/auth/auth.routes';
+import customerRoutes from './modules/customers/customer.routes';
+import productRoutes from './modules/products/product.routes';
 import authPlugin from './plugins/auth';
 import { AppError } from './shared/http';
 
@@ -43,6 +45,13 @@ export async function buildApp(options: BuildOptions = {}) {
   app.get('/health', async () => ({ status: 'ok' }));
 
   await app.register(authRoutes, { prefix: '/api' });
+
+  await app.register(async (api) => {
+    api.addHook('preHandler', api.authenticate);
+
+    await api.register(productRoutes, { prefix: '/api/products' });
+    await api.register(customerRoutes, { prefix: '/api/customers' });
+  });
 
   return app;
 }
